@@ -26,3 +26,6 @@ Scan, with an online device (phone, computer) and double check the transaction b
 Again, please double check the transaction before pushing...</br>
 
 # Naturally, use at your own risks!</br>
+
+![alt tag](https://raw.githubusercontent.com/xorq/warpzor/master/warpzor1.jpg)
+
