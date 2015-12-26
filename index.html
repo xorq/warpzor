@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+
+
+<html>
+	<head>
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+		<meta content="utf-8" http-equiv="encoding">
+
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *">
+		<meta name="format-detection" content="telephone=no">
+		<meta name="msapplication-tap-highlight" content="no">
+		<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+		<title>Easy BTC Mobile</title>
+
+		<script type="text/javascript" src="bower_components/jquery/jquery.min.js"></script>
+		<script type="text/javascript" src="js/jquery-ui.min.js"></script>
+		<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+		<script type="text/javascript" src="js/jquery.mobile.router.min.js"></script>
+		<script type="text/javascript" src="js/jquery.mobile-1.4.5.min.js"></script>
+		<script type="text/javascript" src="bower_components/underscore/underscore.js"></script>
+		<script type="text/javascript" src="js/qrcode.js"></script>
+			<script type="text/javascript" src="js/warpwallet.js"></script>\
+			<script type="text/javascript" src="js/bitcoinjs.min.js"></script>
+			<script type="text/javascript" src="js/bitcoinjs.min2.js"></script>
+		<link rel="stylesheet" href="css/jquery-ui.min.css" />
+		<link rel="stylesheet" href="bower_components/jquery-mobile/css/themes/default/jquery.mobile.css" />
+		<link rel="stylesheet" type="text/css" href="css/index.css" />
+		<script type="text/javascript" src="bower_components/backbone/backbone-min.js"></script>
+		<script type='text/javascript' src='bower_components/backbone.touch/backbone.touch.js'></script>
+	</head>
+	<body>
+		<div class="index" id="index" data-role="page" data-theme="b">
+			<div data-role='header' role='banner' class='ui-header ui-bar-inherit'>
+				<a href='#index' data-transition='slide' data-direction='reverse' class='btn-back ui-btn-left ui-btn ui-icon-home ui-btn-icon-notext' data-role='button' role='button' style='display:none'></a>
+				<a href="#popupInfo1" data-rel="popup" data-transition="pop" data-theme="b" style="margin-top:10px" class="my-tooltip-btn ui-btn ui-nodisc-icon ui-btn-inline ui-icon-info ui-btn-icon-notext"></a>
+				<h2 style='margin:0px;font-size:36px; text-align:center;padding:0px;padding-top:10px;padding-bottom:10px' id=''>WARPZOR</h2>
+			</div>
+			<div style='left-margin:20px' class='result' id='result'>
+				<ul class="ui-listview" data-role="listview" data-type="horizontal">
+					<li class="ui-first-child">
+						<a <a href="#vault" data-role="button" data-transition="slide" class="ui-btn ui-icon-carat-r ui-btn-icon-right">WARP VAULT GENERATOR</a>
+					</li>
+					<li class="ui-last-child">
+						<a <a href="#sign" data-role="button" data-transition="slide" class="ui-btn ui-icon-carat-r ui-btn-icon-right">WARP TRANSACTION</a>
+					</li>
+				</ul>
+			</div>
+			<div data-role="popup" id="popupInfo1" class="ui-content" data-theme="a" style="max-width:350px;font-family:'Arial';">
+  			<p>This tool is for users of <a href="http://keybase.io/warp"> warp wallet</a>, to be able to do air gapped transactions with only QRcodes to transmit data in and out the offline device. It is open source on <a href="http://github.com/xorq/easybtcmobile">github</a>
+			</div>
+		</div>
+		<div class="vault" id="vault" data-role="page" data-theme="b" data-direction='reverse'>
+			<div class="vaultHolder" id="vaultHolder" data-role="page" data-theme="b"></div>
+
+			</div>
+		</div>
+
+		<div class="sign" id="sign" data-role="page" data-theme="b" data-direction='reverse'>
+			<div class="signHolder" id="signHolder" data-role="page" data-theme="b"></div>
+
+			</div>
+		</div>
+
+	</body>
+	<div class="app" style="width:100%" data-role="page" data-theme="b" id="scripts">
+		<script type="text/template" id="vault-template">
+			<div data-role='header' role='banner' class='ui-header ui-bar-inherit'>
+				<a href='#index' data-transition='slide' style="margin-top:10px" data-direction='reverse' class='btn-back ui-btn-left ui-btn ui-icon-home ui-btn-icon-notext' data-role='button' role='button' style='display:block'></a>
+				<a href="#popupInfo2" data-rel="popup" data-transition="pop" data-theme="b" style="margin-top:10px" class="my-tooltip-btn ui-btn ui-nodisc-icon ui-btn-inline ui-icon-info ui-btn-icon-notext"></a>
+				<h2 style='margin:0px;font-size:36px; text-align:center;padding:0px;padding-top:10px;padding-bottom:10px' id=''>VAULT</h2>
+			</div>
+			<div data-role="popup" id="popupInfo2" class="ui-content" data-theme="a" style="max-width:350px;font-family:'Arial';">
+  			<p>This tool helps you to create a <strong>Warp Address</strong></br>
+  				It outputs the same as keybase.io/warp</br>
+  				Your passphrase should be <strong>strong</strong>!</br>
+  				You can insert your email as a salt.</br>
+  				Do not only rely only on the random word generator. It should be cryptographically secure, but it is wise to diversify your sources of entropy</br>
+  				Your phone will take some time to process the key stretching, be patient!</br>
+  				</p>
+			</div>
+			<div style='left-margin:20px' class='result ' id='result'>
+				<ul class="ui-listview" data-role="listview" data-type="horizontal" style="margin-left:10px; margin-right:10px">
+					<li class="ui-first-child" style="margin-top:20px;">
+						<h1 class="label-passphrase" style="display:none; font-size:24px; text-align:left">1 - Passphrase</h1>
+						<input data-role="input" class="passphrase" placeholder="PASSPHRASE" style="font-size:18px" ></input>
+						<a href="#" class="random-word" data-role="button" data-icon="plus" style="font-size:10px; padding-left:35px">ADD A RANDOM WORD</a>
+						<a href="#" class="randomize-words" data-role="button" data-icon="refresh" style="font-size:10px; padding-left:35px">RANDOMIZE WORDS</a>
+					</li>
+					<li class="ui-last-child" style="margin-top:20px;">
+						<h1 class="label-salt" style="font-size:24px; text-align:left; display:none">2 - Salt</h1>
+						<input data-role="input" class="salt" style="font-size:18px" placeholder="SALT"></input>
+						<a style="display:none"></a>
+					</li>
+					<li class="ui-first-child" style="margin-top:30px;">
+						<a style="display:none"></a>
+						<div class="" style="width:100%">
+							<select class="flip-min" name="flip-min" id="flip-min" data-role="slider">
+								<option value="off">GENERATE</option>
+								<option value="on"></option>
+							</select>
+						</div>
+					</li>
+				</ul>
+				<ul class="ui-listview qrcodes" data-role="listview" data-type="horizontal" style="display:none;margin-left:10px; margin-right:10px">
+					<!--<li><Button class="save-address">Save Address</button></li>-->
+					<li><h1>Address</h1><input style='word-break:break-all' class='label-address' disabled></input></li>
+					<li class="qrcode qrcode-address">
+						<div id="qrcode-address"></div>
+					</li>
+					<li><h1>Public Key</h1><input style='word-break:break-all' class='label-pubkey' disabled></input></li>
+					<li class="qrcode qrcode-pubkey">
+						<div id="qrcode-pubkey"></div>
+					</li>
+					<li><h1>Private Key</h1><input style='word-break:break-all' class='label-pkey' disabled></input></li>
+					<li class="qrcode qrcode-pkey">
+						<div id="qrcode-pkey"></div>
+					</li>
+				</ul>
+			</div>
+		</script>
+
+		<script type="text/template" id="sign-template">
+
+			<div data-role='header' role='banner' class='ui-header ui-bar-inherit'>
+				<a href='#index' data-transition='slide' style="margin-top:10px" data-direction='reverse' class='btn-back ui-btn-left ui-btn ui-icon-home ui-btn-icon-notext' data-role='button' role='button' style='display:block'></a>
+				<a href="#popupInfo3" data-rel="popup" data-transition="pop" data-theme="b" style="margin-top:10px" class="my-tooltip-btn ui-btn ui-nodisc-icon ui-btn-inline ui-icon-info ui-btn-icon-notext"></a>
+				<h2 style='margin:0px;font-size:36px; text-align:center;padding:0px;padding-top:10px;padding-bottom:10px' id='bus-number-index'>SIGNATURE</h2>
+			</div>
+			<div style='left-margin:20px' class='result ' id='result'>
+				<ul class="ui-listview" data-role="listview" data-type="horizontal" style="margin-left:10px; margin-right:10px">
+					<li class="ui-first-child" style="margin-top:20px">
+						<a href="" data-role="button" data-transition="slide" class="btn-scan-raw-tx ui-btn ui-icon-carat-r ui-btn-icon-right" style="background-color:<%=rawTx ? 'green' : 'default'%>">SCAN RAW TRANSACTION</a>
+					</li>
+					<div class="outputs">
+					</div>
+					<li class="" style="margin-top:20px">
+						<a href="" data-role="button" data-transition="slide" class="btn-enter-pkey ui-btn ui-icon-carat-r ui-btn-icon-right" style="display:<%=rawTx ? 'block' : 'none'%>">SIGN</a>
+					</li>
+					<li class="" style="margin-top:20px">
+						<a href="" data-role="button" data-transition="slide" class="btn-push-tx ui-btn ui-icon-carat-r ui-btn-icon-right" style="margin-bottom:20px; display:<%=rawTx ? 'block' : 'none'%>">PUSH TO THE NETWORK</a>
+					</li>
+					<div class="pkeyAddress">
+					</div>
+					<li class="calculation ui-last-child" style="margin-top:20px; display:none">
+						<h1 href="" style="display:none; text-align:center;font-size:25px"></h1>
+					</li>
+						<div id="qrcode-transaction"></div>
+				</ul>
+			</div>
+			<div data-role="popup" id="popupInfo3" class="ui-content" data-theme="a" style="max-width:350px;font-family:'Arial';">
+  			<p>
+	  			1 - Create a raw transaction on your computer (You can use coinb.in)</br>
+	  			2 - Display the QRCode of the raw transaction, and scan it using the button below</br>
+	  			3 - Enter your private key informations</br>
+	  			4 - The signed transaction will be show on the screen</br>
+	  			5 - Scan it with your computer for checking & pushing
+  			</p>
+			</div>
+		</script>
+
+	</div>
+	
+	<script type="text/javascript" src="js/index.js"></script>
+</html>

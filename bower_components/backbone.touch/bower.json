@@ -1,0 +1,9 @@
+{
+    "name": "backbone.touch",
+    "version": "0.4.2",
+    "main": "./backbone.touch.js",
+    "ignore": ["test/*"],
+    "dependencies": {
+        "backbone": ">=1.0.0"
+    }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "backbone.touch",
+  "description": "Enable faster click events on touch devices for Backbone views.",
+  "version": "0.4.2",
+  "homepage": "https://github.com/nervetattoo/backbone.touch",
+  "main": "backbone.touch.js",
+  "author": {
+    "name": "Raymond Julin",
+    "email": "raymond.julin@gmail.com",
+    "url": "http://raymondjulin.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/nervetattoo/backbone.touch.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nervetattoo/backbone.touch/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://en.wikipedia.org/wiki/MIT_License"
+    }
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "grunt": "0.4.4",
+    "grunt-contrib-uglify": "0.4.0",
+    "grunt-regarde": "~0.1.1",
+    "grunt-contrib-jshint": "0.9.2",
+    "matchdep": "~0.1.2"
+  }
+}

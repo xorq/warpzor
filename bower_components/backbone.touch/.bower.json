@@ -1,0 +1,22 @@
+{
+  "name": "backbone.touch",
+  "version": "0.4.2",
+  "main": "./backbone.touch.js",
+  "ignore": [
+    "test/*"
+  ],
+  "dependencies": {
+    "backbone": ">=1.0.0"
+  },
+  "homepage": "https://github.com/nervetattoo/backbone.touch",
+  "_release": "0.4.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.4.2",
+    "commit": "061cc7da540fba6f4b03c6172fa72b0690ca8405"
+  },
+  "_source": "git://github.com/nervetattoo/backbone.touch.git",
+  "_target": "~0.4.2",
+  "_originalSource": "backbone.touch",
+  "_direct": true
+}
