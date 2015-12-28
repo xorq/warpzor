@@ -30,15 +30,15 @@ var randomWords = function(num_words, min_word_length) {
 
 var WIFToAddress = function(pkey) {
 	console.log(pkey)
-	return bitcoin.ECKey.fromWIF(pkey).pub.getAddress().toString();
+	return Bitcoin.ECKey.fromWIF(pkey).getAddress().toString();
 };
 var WIFToPubKey = function(pkey) {
-	console.log(bitcoin.ECKey.fromWIF(pkey).pub.toHex())
-	return bitcoin.ECKey.fromWIF(pkey).pub.toHex();
+
+	return Bitcoin.ECPair.fromWIF(pkey).getPublicKeyBuffer().toString('hex');
 };
 var WIFToPkey = function(WIF) {
 	//return WIF
-	return bitcoin.ECKey.fromWIF(WIF);
+	return Bitcoin.ECPair.fromWIF(WIF);
 };
 var scriptToAddress = function(script) {
 	return Bitcoin.address.fromOutputScript(script).toString()
@@ -244,7 +244,7 @@ var signView = Backbone.View.extend({
 				//$('.qrcode').css('height', 0.9 * $('body').width() + 'px');
 				//$('.qrcode').css('display','block');
 				console.log($('#qrcode-transaction' + i));
-				qrTx.makeCode(a)//master.model.signRawTx().raw);	
+				qrTx.makeCode(master.model.signRawTx().raw);	
 			})
 		}
 	},
@@ -265,10 +265,9 @@ var signView = Backbone.View.extend({
 		warp(hook, passphrase , salt, def)
 		def.done(function(wif){
 			master.model.set('wif', wif);
+			//this.model.set('wif','5JMTtVLuW1v81dqK15ftgmRY5fSKUAFp1iX94KqN1MdZpYTS5uJ')
 			master.checkAndDrawQr();
 		})
-		//this.model.set('wif','5JMTtVLuW1v81dqK15ftgmRY5fSKUAFp1iX94KqN1MdZpYTS5uJ')
-		//master.checkAndDrawQr();
 	},
 
 	scanRawTx: function() {
@@ -278,10 +277,10 @@ var signView = Backbone.View.extend({
 		try{
 		cordova.plugins.barcodeScanner.scan(
 			function (result) {
-		//result['text'] = '01000000060e2c7117097bd39eae922dc97e34910c51d619f39546f90f44cacdc4d4ca693a000000008b483045022100c93e3e5ef4daa90d40f7fd41e518904183348235f05d9fd1ad544d5f47bc497d02205567944b8ed641fee9f8d4b66a5760357bc85587d3fa53d0304d388a2627c1ab0141045d2de37f82fb3422a6a9e68daf279e14a1189c1117f772395d7fd6a64e6f841ee7475f8e9898a26de9a770cb470cc1494a7bcfc00f19ac11e7783d5822bb6186ffffffff6f84ed92c17f6aca08afbbe09a79349ab83ba5cc9054539f9f846438bcdbd07e000000008a473044022020faacbad9cf7188e474fb6d916d95645b299f7ca786d33c77b0c52094d1be3502201c03085370db9898bd31db82226ae1a63bd29b75f7454daceac8790cdb07b6940141045d2de37f82fb3422a6a9e68daf279e14a1189c1117f772395d7fd6a64e6f841ee7475f8e9898a26de9a770cb470cc1494a7bcfc00f19ac11e7783d5822bb6186ffffffff308f191a6f6d29d224a767df952b1370e44a3cf6074e2c0737ee55018c330a70010000008a473044022012ad1995d04209e2c3f9c719e95ecad30b07ad643fca61a380cd179f89e5cdaa022043ac96b5d8cc6ee05e9f6cc54be2d7d753062679bd0faa2d595a405b7391952d0141045d2de37f82fb3422a6a9e68daf279e14a1189c1117f772395d7fd6a64e6f841ee7475f8e9898a26de9a770cb470cc1494a7bcfc00f19ac11e7783d5822bb6186ffffffff343b4faae1a730c5aee82cd5e479c2994b9b0f29ee3f5c3de0b47eb9447fdca9000000008a47304402205acc39ac7eca00da83ea6a2d5252b4ae9bfe50daec2ed60c57cb1453f6d944e302203559add291347df3a979fd51aacc3b5a8c19012e5d52104da0fc6a4c4ae9153f0141045d2de37f82fb3422a6a9e68daf279e14a1189c1117f772395d7fd6a64e6f841ee7475f8e9898a26de9a770cb470cc1494a7bcfc00f19ac11e7783d5822bb6186ffffffff942ac1b7667a7ccf1e2e16c96008b94391433831f258ba232457cb9c1434ac0e000000008a47304402201b2d675fc3ee3797dc1a48a5d876c8e30552fd4e0bcde1421e9b15a0e2084b98022072b266eea63048de00feb203e3092aedda03f74697d946e084e3547dc3c4c9ca0141045d2de37f82fb3422a6a9e68daf279e14a1189c1117f772395d7fd6a64e6f841ee7475f8e9898a26de9a770cb470cc1494a7bcfc00f19ac11e7783d5822bb6186ffffffff452a328bf35f31662934ce122b2a1f0654f83cd132864fba6929cea16a4eb081010000008b4830450221008e3392039d4a8516b04d1ba01a47fadff70ba662537eb9853fa5a450b2919aef02207825c5769b11685f40ef188fa47f1e7fe6fa3cd12d8a3ed37bf0b9b581045f210141045d2de37f82fb3422a6a9e68daf279e14a1189c1117f772395d7fd6a64e6f841ee7475f8e9898a26de9a770cb470cc1494a7bcfc00f19ac11e7783d5822bb6186ffffffff0200ca9a3b000000001976a914549b109c86f59a8c56ba6b22fb17c5ecabcd943688acecf0af99060000001976a91451aeca917daed9c4e3d190a1c9b1e7bb2eea6b6388ac00000000'
+		//result['text'] = ''
 				try {
 
-					var txh = bitcoin.Transaction.fromHex(result.text)
+					var txh = Bitcoin.Transaction.fromHex(result.text)
 					_.each(txh.ins,function(a, b){
 						a.script.chunks = [];
 						a.script.buffer = [];
@@ -294,7 +293,8 @@ var signView = Backbone.View.extend({
 				master.model.set('rawTx', result.text);
 
 
-				var txb = bitcoin.TransactionBuilder.fromTransaction(txh);
+				var txb = Bitcoin.TransactionBuilder.fromTransaction(txh);
+				txb.inputs = txb.inputs.map(function(){return {}});
 				console.log(txb)
 				$('.outputs').append('Outputs :</br>')
 				_.each(master.model.outputs(),function(a, b){
@@ -305,8 +305,8 @@ var signView = Backbone.View.extend({
 			}, 
 			function (error) {
 				alert("QRcode doesnt seem valid, try again...");
-			}
-		)} catch(err){
+			})
+		} catch(err){
 			window.alert(err);
 		}
 	},
@@ -358,14 +358,14 @@ var Transaction = Backbone.Model.extend({
 
 		} catch(err) {
 			console.log(err);
-			var txh = bitcoin.Transaction.fromHex(master.get('rawTx'))
-			var txb = bitcoin.TransactionBuilder.fromTransaction(txh);
-
-			txb.signatures = [];
+			var txh = Bitcoin.Transaction.fromHex(master.get('rawTx'))
+			var txb = Bitcoin.TransactionBuilder.fromTransaction(txh);
+			txb.inputs = txb.inputs.map(function(){return {}});
+			//txb.signatures = [];
 
 				_.each(txb.tx.ins, function(data, index) {
 					
-					txb.sign(index , bitcoin.ECKey.fromWIF(master.get('wif')));
+					txb.sign(index , Bitcoin.ECPair.fromWIF(master.get('wif')));
 
 				});
 			console.log({ 
