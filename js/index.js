@@ -203,30 +203,33 @@ var signView = Backbone.View.extend({
 	events:{
 		'click .btn-scan-raw-tx' : 'scanRawTx',
 		'click .btn-enter-pkey' : 'enterPkey',
-		'click .btn-push-tx' : 'pushTx'
+		'click .btn-scan-pkey' : 'scanPkey',
+		'click .btn-divid-qrcode' : 'dividQrCode'
 	},
+
+	dividQrCode: function(z){
+		this.checkAndDrawQr(1000)
+	},
+
 	render: function() {
 		this.$el.html(this.template(this.model.data()));
 		return this;
 	},
 
-	checkAndDrawQr: function() {
+	checkAndDrawQr: function(maxLen) {
+		$('#qrcode-transaction').empty()
 		function chunkString(str, length) {
-			console.log(str);
 			return str.match(new RegExp('.{1,' + length + '}', 'g'));
 		}
+		var maxLen = maxLen || 2000
 		if (this.model.get('rawTx') && this.model.get('wif')) {
-			qrNumber = Math.ceil(this.model.get('rawTx').length / 2000);
-			console.log(this.model.get('rawTx'));
-			console.log(qrNumber);
-			console.log(Math.ceil((this.model.get('rawTx')).length / qrNumber));
+			qrNumber = Math.ceil(this.model.get('rawTx').length / maxLen);
 			qrData = chunkString(this.model.get('rawTx'), Math.ceil(this.model.get('rawTx').length / qrNumber));
-			console.log(qrData);
 			var master = this;
+			var maxWidth = $('body').width() * 0.95;
 			_.each(qrData, function(a, i){
 				$("#qrcode-transaction").append('<div id="qrcode-transaction' + i + '"></div>');
-				var qrTx = new QRCode("qrcode-transaction" + i, {width: 420, height: 420,correctLevel : QRCode.CorrectLevel.L, colorDark : 'black'});
-				console.log($('#qrcode-transaction' + i +' > canvas'))
+				var qrTx = new QRCode("qrcode-transaction" + i, {width: maxWidth, height: maxWidth,correctLevel : QRCode.CorrectLevel.L, colorDark : 'black'});
 				$('#qrcode-transaction' + i +' > canvas').css({
 					'position': 'relative',
 					'margin-left': '2%',
@@ -241,11 +244,15 @@ var signView = Backbone.View.extend({
 					'title': 'Details',
 					'hide': { effect: "fade", duration: 2000 }
 				});
-				//$('.qrcode').css('height', 0.9 * $('body').width() + 'px');
-				//$('.qrcode').css('display','block');
-				console.log($('#qrcode-transaction' + i));
-				qrTx.makeCode(master.model.signRawTx().raw);	
+				qrTx.makeCode(a);
+				$('#qrcode-transaction' + i).css('height',maxWidth*0.95 + 'px').css('margin-bottom','30px').css('margin-top','30px')
 			})
+			$('#qrcode-transaction').css('height',maxWidth*0.95 + 'px')
+			if(qrData[0].length > 1000) {
+				$('#qrcode-transaction').append('<li class="ui-first-child" style="margin-top:20px">\
+					<a href="" data-role="button" data-transition="slide" class="btn-divid-qrcode ui-btn ui-icon-carat-r ui-btn-icon-right">Chunk in multiple QRCodes</a>\
+				</li>');
+			}
 		}
 	},
 
@@ -277,7 +284,7 @@ var signView = Backbone.View.extend({
 		try{
 		cordova.plugins.barcodeScanner.scan(
 			function (result) {
-		//result['text'] = ''
+		//result['text'] = '0100000002e168e7d371c57e51ebd5a7610118331e6aaa012abe6648b4830ea74431a1ff5c01000000c95241044b9db07152655a0ded297a8a29d8da2cfbdf29c861792d53d09954b7f39db379f7b0f44d21e7e3e79c738416c9e8816124e4e1412214106b434482c1656b117541045ca8f16ff28aed07fde794907131d4c69f503c415607a520a06032b2da196457f8551174daa3c0d0dcbeeb410dfe3cf583198186e352988606069ddb818fc30341043568620f555d2650461dd970f34cfbc805aec593983620bb6abfe8cdd3603f077929b5b99291b80f407e94ad5ce6772f65509cf3d1545b1111b86ceb78bc335e53aeffffffff193e1ad9df7ec7c7c18b17a5ebf16d639d0e1b4063ea11110e6fa42a87427f3400000000c95241044b9db07152655a0ded297a8a29d8da2cfbdf29c861792d53d09954b7f39db379f7b0f44d21e7e3e79c738416c9e8816124e4e1412214106b434482c1656b117541045ca8f16ff28aed07fde794907131d4c69f503c415607a520a06032b2da196457f8551174daa3c0d0dcbeeb410dfe3cf583198186e352988606069ddb818fc30341043568620f555d2650461dd970f34cfbc805aec593983620bb6abfe8cdd3603f077929b5b99291b80f407e94ad5ce6772f65509cf3d1545b1111b86ceb78bc335e53aeffffffff01409c0000000000001976a9147355a4982ef75ab49f28225400bffd311b8f337288ac00000000'
 				try {
 
 					var txh = Bitcoin.Transaction.fromHex(result.text)
@@ -295,7 +302,6 @@ var signView = Backbone.View.extend({
 
 				var txb = Bitcoin.TransactionBuilder.fromTransaction(txh);
 				txb.inputs = txb.inputs.map(function(){return {}});
-				console.log(txb)
 				$('.outputs').append('Outputs :</br>')
 				_.each(master.model.outputs(),function(a, b){
 					$('.outputs').append('<div style="padding-left:20px"> ' + a.address + ' : ' + ( a.value / 100000000 ) + '</div>')
@@ -311,8 +317,18 @@ var signView = Backbone.View.extend({
 		}
 	},
 
-	pushTx: function() {
-		this.model.pushTx();
+	scanPkey: function() {
+		cordova.plugins.barcodeScanner.scan(
+			function (result) {
+				try{
+					var ECPair = Bitcoin.ECPair.fromWIF(result);
+					this.model.set('wif', result )//'5JMTtVLuW1v81dqK15ftgmRY5fSKUAFp1iX94KqN1MdZpYTS5uJ')
+					master.checkAndDrawQr();
+				} catch(err) {
+					console.log('invalid WIF');
+				}
+			}
+		)
 	}
 });
 
