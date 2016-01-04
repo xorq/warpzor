@@ -204,11 +204,19 @@ var signView = Backbone.View.extend({
 		'click .btn-scan-raw-tx' : 'scanRawTx',
 		'click .btn-enter-pkey' : 'enterPkey',
 		'click .btn-scan-pkey' : 'scanPkey',
-		'click .btn-divid-qrcode' : 'dividQrCode'
+		'click .btn-divid-qrcode' : 'dividQrCode',
+		'click .btn-divid-qrcode-more' : 'dividQrCodeMore',
+		'click .btn-original-qr-size' : 'originalQrSize'
+	},
+	originalQrSize: function(){
+		this.checkAndDrawQr();
+	},
+	dividQrCode: function(z){
+		this.checkAndDrawQr(1000);
 	},
 
-	dividQrCode: function(z){
-		this.checkAndDrawQr(1000)
+	dividQrCodeMore: function(z){
+		this.checkAndDrawQr(300);
 	},
 
 	render: function() {
@@ -224,7 +232,8 @@ var signView = Backbone.View.extend({
 		var maxLen = maxLen || 2000
 		if (this.model.get('rawTx') && this.model.get('wif')) {
 			qrNumber = Math.ceil(this.model.get('rawTx').length / maxLen);
-			qrData = chunkString(this.model.get('rawTx'), Math.ceil(this.model.get('rawTx').length / qrNumber));
+			var rawTx = this.model.signRawTx().raw;
+			qrData = chunkString(rawTx, Math.ceil(rawTx.length / qrNumber));
 			var master = this;
 			var maxWidth = $('body').width() * 0.95;
 			_.each(qrData, function(a, i){
@@ -252,7 +261,20 @@ var signView = Backbone.View.extend({
 				$('#qrcode-transaction').append('<li class="ui-first-child" style="margin-top:20px">\
 					<a href="" data-role="button" data-transition="slide" class="btn-divid-qrcode ui-btn ui-icon-carat-r ui-btn-icon-right">Chunk in multiple QRCodes</a>\
 				</li>');
+				return
 			}
+
+			if(qrData[0].length > 500) {
+				$('#qrcode-transaction').append('<li class="ui-first-child" style="margin-top:20px">\
+					<a href="" data-role="button" data-transition="slide" class="btn-divid-qrcode-more ui-btn ui-icon-carat-r ui-btn-icon-right">Chunk in even smaller QRCodes</a>\
+				</li>');
+				return
+			}
+
+			$('#qrcode-transaction').append('<li class="ui-first-child" style="margin-top:20px">\
+				<a href="" data-role="button" data-transition="slide" class="btn-original-qr-size ui-btn ui-icon-carat-r ui-btn-icon-right">Back to original small size</a>\
+			</li>');
+			
 		}
 	},
 
@@ -272,12 +294,14 @@ var signView = Backbone.View.extend({
 		warp(hook, passphrase , salt, def)
 		def.done(function(wif){
 			master.model.set('wif', wif);
+			master.model.signRawTx();
 			//this.model.set('wif','5JMTtVLuW1v81dqK15ftgmRY5fSKUAFp1iX94KqN1MdZpYTS5uJ')
 			master.checkAndDrawQr();
 		})
 	},
 
-	scanRawTx: function() {
+	scanRawTx: function(chunks) {
+		chunks = chunks || []
 		var master = this;
 		var result = {}
 
@@ -285,6 +309,16 @@ var signView = Backbone.View.extend({
 		cordova.plugins.barcodeScanner.scan(
 			function (result) {
 		//result['text'] = '0100000002e168e7d371c57e51ebd5a7610118331e6aaa012abe6648b4830ea74431a1ff5c01000000c95241044b9db07152655a0ded297a8a29d8da2cfbdf29c861792d53d09954b7f39db379f7b0f44d21e7e3e79c738416c9e8816124e4e1412214106b434482c1656b117541045ca8f16ff28aed07fde794907131d4c69f503c415607a520a06032b2da196457f8551174daa3c0d0dcbeeb410dfe3cf583198186e352988606069ddb818fc30341043568620f555d2650461dd970f34cfbc805aec593983620bb6abfe8cdd3603f077929b5b99291b80f407e94ad5ce6772f65509cf3d1545b1111b86ceb78bc335e53aeffffffff193e1ad9df7ec7c7c18b17a5ebf16d639d0e1b4063ea11110e6fa42a87427f3400000000c95241044b9db07152655a0ded297a8a29d8da2cfbdf29c861792d53d09954b7f39db379f7b0f44d21e7e3e79c738416c9e8816124e4e1412214106b434482c1656b117541045ca8f16ff28aed07fde794907131d4c69f503c415607a520a06032b2da196457f8551174daa3c0d0dcbeeb410dfe3cf583198186e352988606069ddb818fc30341043568620f555d2650461dd970f34cfbc805aec593983620bb6abfe8cdd3603f077929b5b99291b80f407e94ad5ce6772f65509cf3d1545b1111b86ceb78bc335e53aeffffffff01409c0000000000001976a9147355a4982ef75ab49f28225400bffd311b8f337288ac00000000'
+				if (result.text.indexOf(':') > -1){
+					chunks[result.text.split(':')[0]] = result.text.split(':')[1]
+					try {
+						Bitcoin.Transaction.fromHex(chunks.join(''));
+						result.text = chunks.join('');
+					} catch(err) {
+						window.alert('Transaction incomplete, click OK to continue scanning');
+						master.scanRawTx(chunks)
+					}
+				}
 				try {
 
 					var txh = Bitcoin.Transaction.fromHex(result.text)
@@ -318,15 +352,21 @@ var signView = Backbone.View.extend({
 	},
 
 	scanPkey: function() {
+		var master = this;
 		cordova.plugins.barcodeScanner.scan(
 			function (result) {
+				//result.text = '5JMTtVLuW1v81dqK15ftgmRY5fSKUAFp1iX94KqN1MdZpYTS5uJ';
 				try{
-					var ECPair = Bitcoin.ECPair.fromWIF(result);
-					this.model.set('wif', result )//'5JMTtVLuW1v81dqK15ftgmRY5fSKUAFp1iX94KqN1MdZpYTS5uJ')
+					var ECPair = Bitcoin.ECPair.fromWIF(result.text);
+					master.model.set('wif', result.text )
+					master.model.signRawTx();
 					master.checkAndDrawQr();
 				} catch(err) {
 					console.log('invalid WIF');
 				}
+			},
+			function (error) {
+				alert("there was some error: " + error);
 			}
 		)
 	}
