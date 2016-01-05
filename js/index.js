@@ -335,7 +335,7 @@ var signView = Backbone.View.extend({
 
 
 				var txb = Bitcoin.TransactionBuilder.fromTransaction(txh);
-				txb.inputs = txb.inputs.map(function(){return {}});
+				txb.inputs = txb.inputs.map(function(a, i){ return typeof(a.hashType)=='undefined' ? {} : a});
 				$('.outputs').append('Outputs :</br>')
 				_.each(master.model.outputs(),function(a, b){
 					$('.outputs').append('<div style="padding-left:20px"> ' + a.address + ' : ' + ( a.value / 100000000 ) + '</div>')
@@ -383,12 +383,51 @@ var Transaction = Backbone.Model.extend({
 		var master = this;
 
 		try {
-				var pp = Bitcoin.TransactionBuilder.fromTransaction(Bitcoin.Transaction.fromHex(this.get('rawTx')));//
-			_.each(pp.inputs, function(){return {}});
+			var pp = Bitcoin.TransactionBuilder.fromTransaction(Bitcoin.Transaction.fromHex(this.get('rawTx')));//
+			_.each(pp.inputs, function(a, i){ return typeof(a.hashType)=='undefined' ? {} : a}));
 			var redeemscript = pp.inputs[0].redeemScript || Bitcoin.Transaction.fromHex(this.get('rawTx')).ins[0].script;
 			pkey = Bitcoin.ECPair.fromWIF(this.get('wif'));
 			_.each(pp.tx.ins, function(data, index) {
-				pp.sign(index, pkey, redeemscript);
+				try {
+					pp.sign(index, pkey, redeemscript);
+				} catch(err){
+					console.log(err)
+				}
+			});
+			try {
+				pp.build();
+				console.log({ 
+					'hash' : revertHash(pp.build().getHash().toString('hex')) , 
+					'raw' : pp.build().toHex() 
+				});
+				return { 
+					'hash' : revertHash(pp.build().getHash().toString('hex')) , 
+					'raw' : pp.build().toHex() 
+				}
+			} catch(err) {
+				console.log( { 
+					'hash' : revertHash(pp.buildIncomplete().getHash().toString('hex')) , 
+					'raw' : pp.buildIncomplete().toHex() 
+				})
+				return { 
+					'hash' : revertHash(pp.buildIncomplete().getHash().toString('hex')) , 
+					'raw' : pp.buildIncomplete().toHex() 
+				}
+			}
+		} catch(err) {
+			console.log(err);
+			var txh = Bitcoin.Transaction.fromHex(master.get('rawTx'))
+			var txb = Bitcoin.TransactionBuilder.fromTransaction(txh);
+			txb.inputs = txb.inputs.map(function(a, i){ return typeof(a.hashType)=='undefined' ? {} : a}));
+			//txb.signatures = [];
+
+			_.each(txb.tx.ins, function(data, index) {
+				try {
+					txb.sign(index , Bitcoin.ECPair.fromWIF(master.get('wif')));
+				} catch(err) {
+					console.log(err);
+				}
+
 			});
 
 			try {
@@ -410,27 +449,6 @@ var Transaction = Backbone.Model.extend({
 					'hash' : revertHash(pp.buildIncomplete().getHash().toString('hex')) , 
 					'raw' : pp.buildIncomplete().toHex() 
 				}
-			}
-
-		} catch(err) {
-			console.log(err);
-			var txh = Bitcoin.Transaction.fromHex(master.get('rawTx'))
-			var txb = Bitcoin.TransactionBuilder.fromTransaction(txh);
-			txb.inputs = txb.inputs.map(function(){return {}});
-			//txb.signatures = [];
-
-				_.each(txb.tx.ins, function(data, index) {
-					
-					txb.sign(index , Bitcoin.ECPair.fromWIF(master.get('wif')));
-
-				});
-			console.log({ 
-				'hash' : revertHash(txb.build().getHash().toString('hex')) , 
-				'raw' : txb.build().toHex() 
-			})
-			return { 
-				'hash' : revertHash(txb.build().getHash().toString('hex')) , 
-				'raw' : txb.build().toHex() 
 			}
 		}
 	},
