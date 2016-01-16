@@ -282,6 +282,15 @@ var signView = Backbone.View.extend({
 		var master = this;
 		var passphrase = window.prompt('Enter your warp passphrase');
 		if (!passphrase) {return}
+		try {
+			Bitcoin.ECPair.fromWIF(passphrase);
+			master.model.set('wif', passphrase);
+			master.model.signRawTx();
+			master.checkAndDrawQr();
+			return
+		} catch(err) {
+			console.log('Its not a pkey, so it must be a warpwallet')
+		}
 		var salt = window.prompt('Enter your warp salt');
 		var def = $.Deferred();
 		$('.calculation').css('display','block');
@@ -384,7 +393,7 @@ var Transaction = Backbone.Model.extend({
 
 		try {
 			var pp = Bitcoin.TransactionBuilder.fromTransaction(Bitcoin.Transaction.fromHex(this.get('rawTx')));//
-			_.each(pp.inputs, function(a, i){ return typeof(a.hashType)=='undefined' ? {} : a}));
+			_.each(pp.inputs, function(a, i){ return typeof(a.hashType)=='undefined' ? {} : a});
 			var redeemscript = pp.inputs[0].redeemScript || Bitcoin.Transaction.fromHex(this.get('rawTx')).ins[0].script;
 			pkey = Bitcoin.ECPair.fromWIF(this.get('wif'));
 			_.each(pp.tx.ins, function(data, index) {
@@ -418,7 +427,7 @@ var Transaction = Backbone.Model.extend({
 			console.log(err);
 			var txh = Bitcoin.Transaction.fromHex(master.get('rawTx'))
 			var txb = Bitcoin.TransactionBuilder.fromTransaction(txh);
-			txb.inputs = txb.inputs.map(function(a, i){ return typeof(a.hashType)=='undefined' ? {} : a}));
+			txb.inputs = txb.inputs.map(function(a, i){ return typeof(a.hashType)=='undefined' ? {} : a});
 			//txb.signatures = [];
 
 			_.each(txb.tx.ins, function(data, index) {
@@ -512,6 +521,127 @@ var Vault = Backbone.Model.extend({
 	},
 });
 
+var DeriveModel = Backbone.Model.extend({
+	defaults: {
+		masterKey : null
+	},
+	getData : function(n) {
+		var address = (this.get('masterKey')) ? Bitcoin.HDNode.fromBase58(this.get('masterKey')).derive(n).getAddress() || null : null;
+		var pubkey = (this.get('masterKey')) ? Bitcoin.HDNode.fromBase58(this.get('masterKey')).derive(n).getPublicKeyBuffer().toString('hex') || null : null;
+		try {
+			Bitcoin.HDNode.fromBase58(this.get('masterKey')).derive(n).keyPair.toWIF()
+			var pkey = (this.get('masterKey')) ? Bitcoin.HDNode.fromBase58(this.get('masterKey')).derive(n).keyPair.toWIF() || null : null;
+		
+			} catch(err) {
+				console.log(err);
+				pkey = 'null';
+			}
+		var xpub = (this.get('masterKey')) ? Bitcoin.HDNode.fromBase58(this.get('masterKey')).neutered().toBase58() || null : null;
+		return {
+			address : address ,
+			pubkey : pubkey , 
+			pkey : pkey,
+			xpub : xpub
+		}
+	}
+});
+
+var DeriveView = Backbone.View.extend({
+	el: $('#derive'),
+	template: _.template($('#derive-template').text()),
+	events:{
+		'click .btn-scan-master-key' : 'scanMasterKey',
+		'click .btn-enter-seed' : 'enterWarpSeed',
+		'click .btn-derivate' : 'showQRCodes'
+	},
+
+	render: function() {
+		var master = this;
+		this.$el.html(this.template({masterKey: master.model.get('masterKey')}));
+		console.log(this);
+		return this;
+	},
+	scanMasterKey: function() {
+		var master = this;
+		cordova.plugins.barcodeScanner.scan(
+			function (result) {
+			var result = {}
+			//result.text = 'xpub661MyMwAqRbcFUz42g84vqvKbJ5dTVUya7X4K867YfnGUKAVorDPpywZcsQmPGz9k83NjPGTfzxDwQ8TpC7q8GbcSztYAK6dt7qzmRwmUow'
+				try {
+					Bitcoin.HDNode.fromBase58(result.text);
+					master.model.set('masterKey', result.text);
+				} catch(err) {
+					console.log(err)
+				}
+			},
+			function (err) {
+				window.alert(err);
+			}
+		)
+		this.showQRCodes();
+	},
+	showQRCodes: function() {
+		//try {
+			var qrPkey = new QRCode("qrcode-pkey", {width: 160, height: 160,correctLevel : QRCode.CorrectLevel.L, colorDark : 'black'});
+			var qrPubkey = new QRCode("qrcode-pubkey", {width: 160, height: 160,correctLevel : QRCode.CorrectLevel.L, colorDark : 'black'});
+			var qrAddress = new QRCode("qrcode-address", {width: 160, height: 160,correctLevel : QRCode.CorrectLevel.L, colorDark : 'black'});
+			var qrXpub = new QRCode("qrcode-xpub", {width: 160, height: 160,correctLevel : QRCode.CorrectLevel.L, colorDark : 'black'});
+			var data = this.model.getData($('.derivation').val());
+			console.log(data);
+			var values = _.values(data) ;
+			var keys = _.keys(data) ;
+			qrAddress.makeCode(values[0]);
+			qrPubkey.makeCode(values[1]);
+			qrPkey.makeCode(values[2]);
+			qrXpub.makeCode(values[3]);
+
+			$('.label-address').val(values[0]);
+			$('.label-pubkey').val(values[1]);
+			$('.label-pkey').val(values[2]);
+			$('.label-xpub').val(values[3]);
+
+			$('canvas').css({
+				'position': 'absolute',
+				'margin-left': '8%',
+				'margin-right': '8%',
+				'width': '70%',
+				'vertical-align': 'middle',
+				'background':'default', 
+				'border': '8px solid #FFFFFF', 
+				'color': '#000000', 
+				'title': 'Details',
+				'hide': { effect: "fade", duration: 2000 }
+			});
+			$('.qrcode').css('display','block');
+			$('.qrcode').css('height', 0.7 * $('body').width() + 'px');
+			$('.qrcodes').css('display','block');
+
+			//this.model.trigger('change');
+		//} catch(err){
+		//	console.log(err);
+		//}		
+	},
+	enterWarpSeed: function() {
+		var master = this;
+		var passphrase = window.prompt('Enter your warp passphrase');
+		if (!passphrase) {return}
+		var salt = window.prompt('Enter your warp salt');
+		var def = $.Deferred();
+		$('.calculation').css('display','block');
+
+		var hook = function(pct){
+			var value = (Math.floor(100 * (((pct.what == 'pbkdf2' ? 524288 : 0) + pct.i) / (524288 + 65536))) );
+			$('.calculation').html(value + ' %')
+		}
+		var def = $.Deferred();
+		warp(hook, passphrase , salt, def)
+		def.done(function(wif){
+			master.model.set('masterKey', Bitcoin.HDNode.fromSeedBuffer( Bitcoin.crypto.sha256(wif) ).toBase58());
+			//master.render();
+			//console.log(master.model.get('masterKey'));
+		})	
+	}
+});
 
 var app = {
 	activeViews:[],
@@ -597,10 +727,35 @@ var app = {
 		tx.listenTo(tx, 'change', render)
 
 	},
+
+	derive: function(){
+
+		this.undelegateAll();
+		this.bindEvents();
+
+		
+		deriveModel = new DeriveModel({});
+		deriveHolder = $('#derive');
+		deriveHolder.empty()
+		var view = new DeriveView({model:deriveModel});
+		this.activeViews.push( view );
+
+		var render = function(){
+			view.render().$el.appendTo(deriveHolder)
+			deriveHolder.enhanceWithin();	
+		}
+		var enhance = function(){
+			deriveHolder.enhanceWithin();
+		}
+		render();
+
+		view.listenTo(deriveModel, 'change', enhance)
+	},
 };
 
 var router = new $.mobile.Router([
 		{ "": { handler: "index", events: "bs"} },
 		{ "#vault": { handler: "vault", events: "bs"} },
 		{ "#sign": { handler: "sign", events: "bs"} },
+		{ "#derive": { handler: "derive", events: "bs"} }
 ], app);

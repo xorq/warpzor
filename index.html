@@ -42,6 +42,9 @@
 					<li class="ui-last-child">
 						<a <a href="#sign" data-role="button" data-transition="slide" class="ui-btn ui-icon-carat-r ui-btn-icon-right">WARP TRANSACTION</a>
 					</li>
+					<li class="ui-last-child">
+						<a <a href="#derive" data-role="button" data-transition="slide" class="ui-btn ui-icon-carat-r ui-btn-icon-right">HD DERIVATOR</a>
+					</li>
 				</ul>
 			</div>
 			<div data-role="popup" id="popupInfo1" class="ui-content" data-theme="a" style="max-width:350px;font-family:'Arial';">
@@ -50,18 +53,72 @@
 		</div>
 		<div class="vault" id="vault" data-role="page" data-theme="b" data-direction='reverse'>
 			<div class="vaultHolder" id="vaultHolder" data-role="page" data-theme="b"></div>
-
 			</div>
 		</div>
-
 		<div class="sign" id="sign" data-role="page" data-theme="b" data-direction='reverse'>
 			<div class="signHolder" id="signHolder" data-role="page" data-theme="b"></div>
-
 			</div>
 		</div>
-
+		<div class="derive" id="derive" data-role="page" data-theme="b" data-direction='reverse'>
+			<div class="deriveHolder" id="deriveHolder" data-role="page" data-theme="b"></div>
+			</div>
+		</div>
 	</body>
 	<div class="app" style="width:100%" data-role="page" data-theme="b" id="scripts">
+		<script type="text/template" id="derive-template">
+			<div data-role='header' role='banner' class='ui-header ui-bar-inherit'>
+				<a href='#index' data-transition='slide' data-direction='reverse' class='btn-back ui-btn-left ui-btn ui-icon-home ui-btn-icon-notext' data-role='button' role='button' style='display:none'></a>
+				<a href="#popupInfo4" data-rel="popup" data-transition="pop" data-theme="b" style="margin-top:10px" class="my-tooltip-btn ui-btn ui-nodisc-icon ui-btn-inline ui-icon-info ui-btn-icon-notext"></a>
+				<h2 style='margin:0px;font-size:36px; text-align:center;padding:0px;padding-top:10px;padding-bottom:10px' id=''>Derivator</h2>
+			</div>
+			<div style='left-margin:20px' class='result ' id='result'>
+				<ul class="ui-listview" data-role="listview" data-type="horizontal" style="margin-left:10px; margin-right:10px">
+					<li class="ui-first-child" style="margin-top:20px;">
+						<input data-role="input" class="derivation" placeholder="Derivation Number" style="font-size:18px" ></input>
+					</li>
+					<li class="" style="margin-top:20px">
+						<a href="" data-role="button" data-transition="slide" class="btn-derivate ui-btn ui-icon-carat-r ui-btn-icon-right <%=masterKey || 'disabled'%>" style="display:">DERIVATE</a>
+					</li>
+					<li class="" style="margin-top:20px">
+						<a href="" data-role="button" data-transition="slide" class="btn-scan-master-key ui-btn ui-icon-carat-r ui-btn-icon-right" style="">SCAN MASTER KEY</a>
+					</li>
+					<li class="" style="margin-top:20px">
+						<a href="" data-role="button" data-transition="slide" class="btn-enter-seed ui-btn ui-icon-carat-r ui-btn-icon-right" style="">WARP SEED FOR MASTER KEY</a>
+					</li>
+					<li class="calculation ui-last-child" style="margin-top:20px; display:none">
+						<h1 href="" style="display:none; text-align:center;font-size:25px"></h1>
+					</li>
+				<ul>
+				<ul class="ui-listview qrcodes" data-role="listview" data-type="horizontal" style="display:none;margin-left:10px; margin-right:10px">
+					<!--<li><Button class="save-address">Save Address</button></li>-->
+					<li><h1>Address</h1><input style='word-break:break-all' class='label-address' disabled></input></li>
+					<li class="qrcode qrcode-address">
+						<div id="qrcode-address"></div>
+					</li>
+					<li><h1>Public Key</h1><input style='word-break:break-all' class='label-pubkey' disabled></input></li>
+					<li class="qrcode qrcode-pubkey">
+						<div id="qrcode-pubkey"></div>
+					</li>
+					<li><h1>Private Key</h1><input style='word-break:break-all' class='label-pkey' disabled></input></li>
+					<li class="qrcode qrcode-pkey">
+						<div id="qrcode-pkey"></div>
+					</li>
+					<li><h1>Master PubKey</h1><input style='word-break:break-all' class='label-xpub' disabled></input></li>
+					<li class="qrcode qrcode-xpub">
+						<div id="qrcode-xpub"></div>
+					</li>
+				</ul>
+				<div data-role="popup" id="popupInfo3" class="ui-content" data-theme="a" style="max-width:350px;font-family:'Arial';">
+	  			<p>
+		  			1 - Create a raw transaction on your computer (You can use coinb.in)</br>
+		  			2 - Display the QRCode of the raw transaction, and scan it using the button below</br>
+		  			3 - Enter your private key informations</br>
+		  			4 - The signed transaction will be show on the screen</br>
+		  			5 - Scan it with your computer for checking & pushing
+	  			</p>
+				</div>
+			</div>
+		</script>
 		<script type="text/template" id="vault-template">
 			<div data-role='header' role='banner' class='ui-header ui-bar-inherit'>
 				<a href='#index' data-transition='slide' style="margin-top:10px" data-direction='reverse' class='btn-back ui-btn-left ui-btn ui-icon-home ui-btn-icon-notext' data-role='button' role='button' style='display:block'></a>
