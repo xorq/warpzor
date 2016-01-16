@@ -565,7 +565,7 @@ var DeriveView = Backbone.View.extend({
 		var master = this;
 		cordova.plugins.barcodeScanner.scan(
 			function (result) {
-			var result = {}
+			//var result = {}
 			//result.text = 'xpub661MyMwAqRbcFUz42g84vqvKbJ5dTVUya7X4K867YfnGUKAVorDPpywZcsQmPGz9k83NjPGTfzxDwQ8TpC7q8GbcSztYAK6dt7qzmRwmUow'
 				try {
 					Bitcoin.HDNode.fromBase58(result.text);
