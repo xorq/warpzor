@@ -552,9 +552,19 @@ var DeriveView = Backbone.View.extend({
 	events:{
 		'click .btn-scan-master-key' : 'scanMasterKey',
 		'click .btn-enter-seed' : 'enterWarpSeed',
-		'click .btn-derivate' : 'showQRCodes'
+		'click .btn-derivate' : 'showQRCodes',
+		'click .btn-enter-mpubkey' : 'enterMasterKey'
 	},
 
+	enterMasterKey: function() {
+		var mkey = window.prompt('Enter your Master Key')
+		try {
+			Bitcoin.HDNode.fromBase58(mkey);
+			master.model.set('masterKey', mkey);
+		} catch(err) {
+			console.log(err)
+		}
+	},
 	render: function() {
 		var master = this;
 		this.$el.html(this.template({masterKey: master.model.get('masterKey')}));
