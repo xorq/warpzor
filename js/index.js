@@ -2,8 +2,6 @@
 window.isTouchDevice =  (/android|webos|iphone|ipod|ipad|blackberry|iemobile/i.test(navigator.userAgent.toLowerCase()) )
 var clickEvent = window.isTouchDevice ? 'touchstart' : 'click';
 
-
-
 var base58 = (function(alpha) {
     var alphabet = alpha || '123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ',
         base = alphabet.length;
@@ -65,7 +63,7 @@ var randomWords = function(num_words, min_word_length) {
 
 var WIFToAddress = function(pkey) {
 	console.log(pkey)
-	return Bitcoin.ECKey.fromWIF(pkey).getAddress().toString();
+	return Bitcoin.ECPair.fromWIF(pkey).getAddress().toString();
 };
 var WIFToPubKey = function(pkey) {
 
@@ -96,11 +94,11 @@ var warp = function(hook, passphrase, salt, def){
 	var params = { 
 		"N"        : 18,
 		"p"        : 1,
-		"r"        : 8,
-		"dkLen"    : 32,
-		"pbkdf2c"  : 65536
+		"r"        : 4,
+		"dkLen"    : 16,
+		"pbkdf2c"  : 8192
 	};
-
+    
 	warpwallet.run({
 	passphrase: passphrase,
 	salt: salt,
@@ -185,7 +183,9 @@ var VaultView = Backbone.View.extend({
 			$('.qrcode').css('display','block');
 			$('.qrcode').css('height', 0.7 * $('body').width() + 'px');
 			$('.qrcodes').css('display','block');
-		} catch(err){}
+		} catch(err){
+            console.log(err);
+        }
 	},
 	generate: function() {
 		console.log(this.stat)
@@ -224,6 +224,7 @@ var VaultView = Backbone.View.extend({
 		
 		warp(hook, $('.passphrase').val() , $('.salt').val(), def)
 		def.done(function(wif){
+            console.log('drawing')
 			$('.ui-slider-label', this.el).css('background-color','default');
 			master.model.set('WIF', wif);
 			master.showQRCodes();
@@ -337,6 +338,7 @@ var signView = Backbone.View.extend({
 		warp(hook, passphrase , salt, def)
 		def.done(function(wif){
 			master.model.set('wif', wif);
+            console.log(wif)
 			master.model.signRawTx();
 			//this.model.set('wif','5JMTtVLuW1v81dqK15ftgmRY5fSKUAFp1iX94KqN1MdZpYTS5uJ')
 			master.checkAndDrawQr();
@@ -348,10 +350,10 @@ var signView = Backbone.View.extend({
 		var master = this;
 		var result = {}
 
-		try{
-		cordova.plugins.barcodeScanner.scan(
-			function (result) {
-		//result['text'] = '0100000002e168e7d371c57e51ebd5a7610118331e6aaa012abe6648b4830ea74431a1ff5c01000000c95241044b9db07152655a0ded297a8a29d8da2cfbdf29c861792d53d09954b7f39db379f7b0f44d21e7e3e79c738416c9e8816124e4e1412214106b434482c1656b117541045ca8f16ff28aed07fde794907131d4c69f503c415607a520a06032b2da196457f8551174daa3c0d0dcbeeb410dfe3cf583198186e352988606069ddb818fc30341043568620f555d2650461dd970f34cfbc805aec593983620bb6abfe8cdd3603f077929b5b99291b80f407e94ad5ce6772f65509cf3d1545b1111b86ceb78bc335e53aeffffffff193e1ad9df7ec7c7c18b17a5ebf16d639d0e1b4063ea11110e6fa42a87427f3400000000c95241044b9db07152655a0ded297a8a29d8da2cfbdf29c861792d53d09954b7f39db379f7b0f44d21e7e3e79c738416c9e8816124e4e1412214106b434482c1656b117541045ca8f16ff28aed07fde794907131d4c69f503c415607a520a06032b2da196457f8551174daa3c0d0dcbeeb410dfe3cf583198186e352988606069ddb818fc30341043568620f555d2650461dd970f34cfbc805aec593983620bb6abfe8cdd3603f077929b5b99291b80f407e94ad5ce6772f65509cf3d1545b1111b86ceb78bc335e53aeffffffff01409c0000000000001976a9147355a4982ef75ab49f28225400bffd311b8f337288ac00000000'
+		//try{
+		//cordova.plugins.barcodeScanner.scan(
+		//	function (result) {
+		result['text'] = '01000000015526d0b27270d70c92eec20d12781853dc6354af725e9054c2262dc3d551037d000000001976a91484895ea08614b612beaf15701664bec5c9ecca1588acffffffff0190435900000000001976a91484895ea08614b612beaf15701664bec5c9ecca1588ac00000000'
 				if (result.text.indexOf(':') > -1){
 					chunks[result.text.split(':')[0]] = result.text.split(':')[1]
 					try {
@@ -385,20 +387,20 @@ var signView = Backbone.View.extend({
 				})
 				$('.outputs').append('Total : ' + _.reduce(master.model.outputs(), function(a, b) { return a + b.value}, 0) / 100000000)
 				master.checkAndDrawQr();
-			}, 
+		/*	}, 
 			function (error) {
 				alert("QRcode doesnt seem valid, try again...");
 			})
 		} catch(err){
 			window.alert(err);
-		}
+		}*/
 	},
 
 	scanPkey: function() {
 		var master = this;
-		cordova.plugins.barcodeScanner.scan(
-			function (result) {
-				//result.text = '5JMTtVLuW1v81dqK15ftgmRY5fSKUAFp1iX94KqN1MdZpYTS5uJ';
+		//cordova.plugins.barcodeScanner.scan(
+		//	function (result) {
+				result.text = '5JMTtVLuW1v81dqK15ftgmRY5fSKUAFp1iX94KqN1MdZpYTS5uJ';
 				try{
 					var ECPair = Bitcoin.ECPair.fromWIF(result.text);
 					master.model.set('wif', result.text )
@@ -407,11 +409,11 @@ var signView = Backbone.View.extend({
 				} catch(err) {
 					console.log('invalid WIF');
 				}
-			},
+		/*	},
 			function (error) {
 				alert("there was some error: " + error);
 			}
-		)
+		)*/
 	}
 });
 
@@ -424,21 +426,28 @@ var Transaction = Backbone.Model.extend({
 	signRawTx : function(){
 
 		var master = this;
-
+        console.log(this.get('rawTx'));
 		try {
 			var pp = Bitcoin.TransactionBuilder.fromTransaction(Bitcoin.Transaction.fromHex(this.get('rawTx')));//
-			_.each(pp.inputs, function(a, i){ return typeof(a.hashType)=='undefined' ? {} : a});
-			var redeemscript = pp.inputs[0].redeemScript || Bitcoin.Transaction.fromHex(this.get('rawTx')).ins[0].script;
+			_.each(pp.inputs, function(a, i){ a.prevOutType = a.scriptType = typeof(a.hashType) == "undefined" ? undefined : a});
+            console.log(pp);
+			var redeemscript = pp.inputs[0].redeemScript || null;//Bitcoin.Transaction.fromHex(this.get('rawTx')).ins[0].script;
 			pkey = Bitcoin.ECPair.fromWIF(this.get('wif'));
 			_.each(pp.tx.ins, function(data, index) {
 				try {
-					pp.sign(index, pkey, redeemscript);
+                    if (redeemscript) {
+					   pp.sign(index, pkey, redeemscript);
+                    } else {
+                        pp.sign(index, pkey)
+                    }
 				} catch(err){
 					console.log(err)
 				}
 			});
 			try {
+                console.log(pp);
 				pp.build();
+                console.log('1')
 				console.log({ 
 					'hash' : revertHash(pp.build().getHash().toString('hex')) , 
 					'raw' : pp.build().toHex() 
@@ -448,6 +457,7 @@ var Transaction = Backbone.Model.extend({
 					'raw' : pp.build().toHex() 
 				}
 			} catch(err) {
+                console.log('2')
 				console.log( { 
 					'hash' : revertHash(pp.buildIncomplete().getHash().toString('hex')) , 
 					'raw' : pp.buildIncomplete().toHex() 
@@ -461,7 +471,7 @@ var Transaction = Backbone.Model.extend({
 			console.log(err);
 			var txh = Bitcoin.Transaction.fromHex(master.get('rawTx'))
 			var txb = Bitcoin.TransactionBuilder.fromTransaction(txh);
-			txb.inputs = txb.inputs.map(function(a, i){ return typeof(a.hashType)=='undefined' ? {} : a});
+			txb.inputs = txb.inputs.map(function(a, i){ return typeof(a.hashType) == 'undefined' ? {} : a});
 			//txb.signatures = [];
 
 			_.each(txb.tx.ins, function(data, index) {
@@ -590,7 +600,11 @@ var DeriveModel = Backbone.Model.extend({
 		} catch(err) {
 			window.alert('there was a problem : ' + err)
 		}
-	}
+	},
+    deleteMasterKey: function() {
+        this.set({'masterKey': null});
+        this.trigger('change');
+    }
 });
 
 var DeriveView = Backbone.View.extend({
@@ -601,19 +615,21 @@ var DeriveView = Backbone.View.extend({
 		'click .btn-enter-seed' : 'enterWarpSeed',
 		'click .btn-derivate' : 'derivate',
 		'click .btn-enter-mpubkey' : 'enterMasterKey',
-		'click .btn-save-master-key' : 'saveMasterKey',
+		//'click .btn-save-master-key' : 'saveMasterKey',
 		'click .btn-forget-master-key' : 'forgetMasterKey'
 	},
 	forgetMasterKey: function() {
 		try {
 			window.localStorage.clear()
 			window.alert('Deleted ! Nothing left in storage !')
+            this.model.deleteMasterKey();
+            this.model.trigger('change');
 
 		} catch(err) {
 			window.alert('Something went wrong : ' + err);
 		}
 	},
-	saveMasterKey: function() {
+	/*saveMasterKey: function() {
 		if (this.model.get('masterKey')) {
 			if (window.confirm('Are you sure? This will overwrite any previous master key! Notice that the MASTER PUBLIC KEY will replace the MASTER PRIVATE KEY (which will be forgotten) if you continue !')){
 				this.model.saveMasterKey();
@@ -621,12 +637,14 @@ var DeriveView = Backbone.View.extend({
 		} else {
 			window.alert('there is no master key to save')
 		}
-	},
+	},*/
 	enterMasterKey: function() {
 		var mkey = window.prompt('Enter your Master Key')
 		try {
 			Bitcoin.HDNode.fromBase58(mkey);
+
 			master.model.set('masterKey', mkey);
+            master.model.saveMasterKey();
 		} catch(err) {
 			console.log(err)
 		}

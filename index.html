@@ -73,25 +73,21 @@
 			</div>
 			<div style='left-margin:20px' class='result ' id='result'>
 				<ul class="ui-listview" data-role="listview" data-type="horizontal" style="margin-left:10px; margin-right:10px">
-					<h1 style="color:<%=masterKey ? 'green' : 'red'%>"><%=masterKey ? 'MASTER PKEY : PRESENT' : 'MASTER PKEY : NOT PRESENT'%></h1>
 					<h2 style="color:green">CHOOSE MASTER KEY TO USE</h2>
 					<li class="" style="margin-top:20px">
-						<a href="" data-role="button" data-transition="slide" class="btn-scan-master-key ui-btn ui-icon-carat-r ui-btn-icon-right" style="">SCAN MASTER KEY</a>
+						<a href="" data-role="button" data-transition="slide" class="btn-scan-master-key ui-btn ui-icon-carat-r ui-btn-icon-right" style="display:<%=masterKey ? 'none' : 'block'%>">SCAN MASTER KEY</a>
 					</li>
 					<li class="" style="margin-top:20px">
-						<a href="" data-role="button" data-transition="slide" class="btn-enter-seed ui-btn ui-icon-carat-r ui-btn-icon-right" style="">WARP SEED FOR MASTER KEY</a>
+						<a href="" data-role="button" data-transition="slide" class="btn-enter-seed ui-btn ui-icon-carat-r ui-btn-icon-right" style="display:<%=masterKey ? 'none' : 'block'%>">WARP SEED FOR MASTER KEY</a>
 					</li>
 					<li class="" style="margin-top:20px">
-						<a href="" data-role="button" data-transition="slide" class="btn-save-master-key ui-btn ui-icon-carat-r ui-btn-icon-right <%=masterKey || 'ui-disabled'%>" style="">SAVE PUBLIC MASTER KEY</a>
+						<a href="" data-role="button" data-transition="slide" class="btn-forget-master-key ui-btn ui-icon-carat-r ui-btn-icon-right <%=masterKey || 'ui-disabled'%>" style="display:<%=masterKey ? 'block' : 'none'%>">FORGET PUBLIC MASTER KEY</a>
 					</li>
-					<li class="" style="margin-top:20px">
-						<a href="" data-role="button" data-transition="slide" class="btn-forget-master-key ui-btn ui-icon-carat-r ui-btn-icon-right <%=masterKey || 'ui-disabled'%>" style="">FORGET PUBLIC MASTER KEY</a>
-					</li>
-					<h2 style="color:green">CHOOSE DERIVATION NUMBER</h2>
-					<li class="ui-first-child" style="margin-top:20px;">
+					<h2 style="color:green; display:<%=masterKey ? 'block' : 'none'%>">CHOOSE DERIVATION NUMBER</h2>
+					<li class="ui-first-child" style="margin-top:20px;display:<%=masterKey ? 'block' : 'none'%>">
 						<input data-role="input" class="derivation" placeholder="Derivation Number" style="font-size:18px" ></input>
 					</li>
-					<li class="" style="margin-top:20px">
+					<li class="" style="margin-top:20px;display:<%=masterKey ? 'block' : 'none'%>">
 						<a href="" data-role="button" data-transition="slide" class="btn-derivate ui-btn ui-icon-carat-r ui-btn-icon-right <%=masterKey || 'ui-disabled'%>">DERIVATE</a>
 					</li>
 					<li class="calculation ui-last-child" style="margin-top:20px; display:none">
